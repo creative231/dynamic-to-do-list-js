@@ -1,4 +1,4 @@
-// Wait for the HTML document to fully load before running the script
+// Wait for the HTML document to fully load before running the script 
 document.addEventListener('DOMContentLoaded', () => {
     // ==============================================
     // 1. Select DOM Elements
@@ -8,49 +8,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const taskList = document.getElementById('task-list');     // Task list container
 
     // ==============================================
-    // 2. Define the addTask Function
+    // 2. Load Tasks from Local Storage on Page Load
     // ==============================================
-    function addTask() {
-        // Retrieve and trim the input value
-        const taskText = taskInput.value.trim();
+    function loadTasks() {
+        const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        storedTasks.forEach(taskText => addTask(taskText, false)); // false = don't re-save while loading
+    }
 
-        // Check if input is empty
+    // ==============================================
+    // 3. Define addTask Function
+    // ==============================================
+    function addTask(taskText = taskInput.value.trim(), save = true) {
+        // Validate input
         if (taskText === "") {
-            alert("Please enter a task."); // Alert user if empty
+            alert("Please enter a task.");
             return;
         }
 
-        // ==============================================
-        // 3. Create Task and Remove Button
-        // ==============================================
-        const li = document.createElement('li');   // Create list item
-        li.textContent = taskText;                 // Set its text content
+        // Create task list item
+        const li = document.createElement('li');
+        li.textContent = taskText;
 
-        const removeBtn = document.createElement('button'); // Create remove button
-        removeBtn.textContent = "Remove";                   // Button text
-        removeBtn.className = "remove-btn";                 // Add a class
+        // Create Remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = "Remove";
+        removeBtn.className = "remove-btn";
 
-        // Assign remove functionality
+        // Remove button logic
         removeBtn.onclick = function() {
             taskList.removeChild(li);
+            removeTask(taskText);
         };
 
-        // Append button to the list item, then to the list
+        // Append elements
         li.appendChild(removeBtn);
         taskList.appendChild(li);
 
-        // Clear the input field after adding the task
+        // Save to Local Storage if applicable
+        if (save) {
+            const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            storedTasks.push(taskText);
+            localStorage.setItem('tasks', JSON.stringify(storedTasks));
+        }
+
+        // Clear input field
         taskInput.value = "";
     }
 
     // ==============================================
-    // 4. Attach Event Listeners
+    // 4. Define removeTask Function
     // ==============================================
+    function removeTask(taskText) {
+        const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        const updatedTasks = storedTasks.filter(task => task !== taskText);
+        localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+    }
 
-    // Add task when button is clicked
-    addButton.addEventListener('click', addTask);
-
-    // Add task when Enter key is pressed
+    // ==============================================
+    // 5. Event Listeners
+    // ==============================================
+    addButton.addEventListener('click', () => addTask());
     taskInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
             addTask();
@@ -58,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==============================================
-    // 5. Invoke addTask on DOMContentLoaded (per instructions)
+    // 6. Load Tasks When Page Opens
     // ==============================================
-    addTask; // Ensures the function is defined and ready for use
+    loadTasks();
 });
